@@ -68,14 +68,14 @@ class OdeintAdjointMethod(torch.autograd.Function):
 
                 # Compute the effect of moving the current time measurement point.
                 dLd_cur_t = sum(
-                    torch.dot(func_i_.view(-1), grad_output_i_.view(-1)).view(1)
+                    torch.dot(func_i_.reshape(-1), grad_output_i_.reshape(-1)).reshape(1)
                     for func_i_, grad_output_i_ in zip(func_i, grad_output_i)
                 )
                 adj_time = adj_time - dLd_cur_t
                 time_vjps.append(dLd_cur_t)
 
                 # Run the augmented system backwards in time.
-                if len(adj_params) == 0:
+                if adj_params.numel() == 0:
                     adj_params = torch.tensor(0.).to(adj_y[0])
                 aug_y0 = (*ans_i, *adj_y, adj_time, adj_params)
                 aug_ans = odeint(
